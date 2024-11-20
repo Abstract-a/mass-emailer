@@ -1,30 +1,22 @@
 const express = require('express');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const keys = require('./config/keys');
+const mongoose = require('mongoose');
+require('./services/passport');
+require('dotenv/config');
+const Users = require('./models/User');
 
 const app = express();
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: keys.googleClientID,
-      clientSecret: keys.googleClientSecret,
-      callbackURL: '/auth/google/callback',
-    },
-    (accessToken) => {
-      console.log(accessToken);
-    }
-  )
-);
+app.use('/auth/google', require('./routes/authRoutes'));
 
-app.get(
-  '/auth/google',
-  passport.authenticate('google', {
-    scope: ['profile', 'email'],
+const PORT = process.env.PORT;
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`running on port : ${PORT}`);
+    });
   })
-);
-
-app.listen(5000, () => {
-  console.log('running on port 5000');
-});
+  .catch((error) => {
+    console.log(error);
+  });
